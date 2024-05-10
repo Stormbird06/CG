@@ -1,0 +1,145 @@
+#include <GL/glut.h> // Include GLUT library
+ #include <iostream> // Include input/output stream library
+ using namespace std; // Using standard namespace
+ float x01, x2, y01, y2; // Variables to store coordinates
+ int ch; // Variable to store choice of line type
+ // Function to display a point at (x, y)
+ void displayPoint(int x, int y) {
+ glColor3f(0, 1, 0); // Set color to green
+ glPointSize(2); // Set point size
+ glBegin(GL_POINTS); // Begin drawing points
+ glVertex2i(x, y); // Specify vertex
+ glEnd(); // End drawing points
+ glFlush(); // Flush OpenGL pipeline
+ }
+ // Function to draw a simple line using DDA algorithm
+ void SimpleLine(float x1, float y1, float x2, float y2) {
+ float step;
+ float dx = x2 - x1;
+ float dy = y2 - y1;
+ if (abs(dx) >= abs(dy)) {
+ step = abs(dx);
+ } else {
+ step = abs(dy);
+ }
+ float Xinc = dx / (float)step;
+ float Yinc = dy / (float)step;
+ float x = x1;
+ float y = y1;
+ for (int i = 0; i <= step; i++) {
+ displayPoint(x, y); // Display point
+ x = x + Xinc; // Update x
+ y = y + Yinc; // Update y
+ }
+ }
+ 
+ // Function to draw a dashed line using DDA algorithm
+ void DashedLine(float x1, float y1, float x2, float y2) {
+    float step;
+    int count = 0;
+    float dx = x2 - x1;
+    float dy = y2 - y1;
+    if (abs(dx) >= abs(dy)) {
+        step = abs(dx);
+    } else {
+        step = abs(dy);
+    }
+    float Xinc = dx / (float)step;
+    float Yinc = dy / (float)step;
+    float x = x1;
+    float y = y1;
+    for (int i = 0; i <= step; i++) {
+        count++;
+        if (count < 7) {
+            displayPoint(x, y); // Display point
+            x = x + Xinc; // Update x
+            y = y + Yinc; // Update y
+        } else if (count <= 10 && count >= 7) {
+            x = x + Xinc; // Update x
+            y = y + Yinc; // Update y
+        } else {
+            x = x + Xinc; // Update x
+            y = y + Yinc; // Update y
+            count = 0; // Reset count
+        }
+    }
+ }
+ 
+ // Function to handle mouse events
+ void myMouse(int button, int state, int x, int y) {
+    static int xst, yst, pt = 0;
+    if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
+        if (pt == 0) {
+            xst = x;
+            yst = y;
+            x01 = xst;
+            y01 = yst;
+            pt = pt + 1;
+        } else {
+            x2 = x;
+            y2 = y;
+            if (ch == 1) {
+                SimpleLine(xst, yst, x, y); // Draw simple line
+            } else if (ch == 2) {
+                
+                DashedLine(xst, yst, x, y); // Draw dashed line
+            } 
+            xst = x;
+            yst = y;
+        }
+    } else if (button == GLUT_RIGHT_BUTTON && state == GLUT_DOWN) {
+        pt = 0;
+    }
+    glFlush(); // Flush OpenGL pipeline
+ }
+ // Function to handle keyboard events
+ void keyboard(unsigned char key, int x, int y) {
+    switch (key) {
+        case 's': // Simple line mode
+            ch = 1;
+            glutMouseFunc(myMouse); // Set mouse callback function
+            break;
+        
+        case 'D': // Dashed line mode
+            ch = 2;
+            glutMouseFunc(myMouse); // Set mouse callback function
+            break;
+        
+ default:
+ break;
+ }
+ glutPostRedisplay(); // Mark the current window as needing to be redisplayed
+ }
+ // Function to initialize OpenGL
+ void initialize(void) {
+ glClearColor(1.0, 1.0, 1.0, 1.0); // Set clear color to white
+ glClear(GL_COLOR_BUFFER_BIT); // Clear color buffer
+ gluOrtho2D(0, 600, 600, 0); // Set up the coordinate system
+ }
+ // Function to display the primitives
+ void primitives(void) {
+ // Draw coordinate axes
+ glColor3f(1, 0, 0); // Set color to red
+ SimpleLine(0, 300, 600, 300); // Draw x-axis
+ SimpleLine(300, 0, 300, 600); // Draw y-axis
+ // Display instructions
+ cout << "--------------------";
+ cout << "\ns. Simple Line";
+ 
+ cout << "\nD. Dashed Line";
+   
+ cout << "\n--------------------\n";
+ }
+ // Main function
+ int main(int argc, char **argv) {
+ glutInit(&argc, argv); // Initialize GLUT
+ glutInitDisplayMode(GLUT_SINGLE); // Set display mode
+ glutInitWindowSize(600, 600); // Set window size
+ glutCreateWindow("OpenGL - DDA Algorithm"); // Create window with the given title
+ initialize(); // Initialize OpenGL
+ glutDisplayFunc(primitives); // Register display callback function
+ glutKeyboardFunc(keyboard); // Register keyboard callback function
+ glutMainLoop(); // Enter the event processing loop
+ return 0; // Return status
+ }
+ 
